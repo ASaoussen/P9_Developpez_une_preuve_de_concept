@@ -6,9 +6,9 @@ import torch.nn as nn
 from azure.storage.blob import BlobServiceClient
 import os
 
-# --- Configuration via variables d’environnement ---
-AZURE_CONNECTION_STRING = os.environ.get("AZURE_CONNECTION_STRING")
-CONTAINER_NAME = os.environ.get("AZURE_CONTAINER_NAME", "container2")
+# 🔐 Charger depuis les variables d'environnement (définies dans GitHub Actions)
+AZURE_CONNECTION_STRING = os.getenv("AZURE_CONNECTION_STRING")
+CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME")
 
 # Liste des fichiers nécessaires pour le modèle
 BLOB_FILES = [
@@ -72,6 +72,12 @@ model.eval()
 # --- API FastAPI ---
 app = FastAPI()
 
+# Endpoint de bienvenue
+@app.get("/")
+def read_root():
+    return {"message": "Bienvenue sur l'API de classification de sentiment avec ModernBERT 🚀"}
+
+# Endpoint de prédiction
 class InputText(BaseModel):
     text: str
 
