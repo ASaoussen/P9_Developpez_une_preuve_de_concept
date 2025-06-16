@@ -29,8 +29,8 @@ jobs:
 
       - name: Create and activate virtual environment
         run: |
-          python -m venv myenv
-          myenv\Scripts\activate
+          python -m venv antenv
+          antenv\Scripts\activate
 
       - name: Install dependencies
         run: pip install -r requirements.txt  
