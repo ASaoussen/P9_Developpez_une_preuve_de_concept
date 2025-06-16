@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+torch
+transformers
+pydantic
+pandas
+numpy
+scikit-learn
+datasets
+evaluate
+matplotlib
+azure-storage-blob
