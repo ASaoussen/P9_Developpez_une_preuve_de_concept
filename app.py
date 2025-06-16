@@ -6,9 +6,11 @@ import torch.nn as nn
 from azure.storage.blob import BlobServiceClient
 import os
 
-# Azure Blob Storage config
-AZURE_CONNECTION_STRING = "DefaultEndpointsProtocol=https;AccountName=p8blob;AccountKey=jtfgMlh2QSMN60CydwDTOWMS1L2726/4N8Dhbvg4cNe/JQ6x8YmwHRdiNP3Igk1GA2AMtM41Fcam+AStl5pRog==;EndpointSuffix=core.windows.net"
-CONTAINER_NAME = "container2"
+# --- Configuration via variables d’environnement ---
+AZURE_CONNECTION_STRING = os.environ.get("AZURE_CONNECTION_STRING")
+CONTAINER_NAME = os.environ.get("AZURE_CONTAINER_NAME", "container2")
+
+# Liste des fichiers nécessaires pour le modèle
 BLOB_FILES = [
     "tokenizer.json",
     "tokenizer_config.json",
@@ -17,30 +19,28 @@ BLOB_FILES = [
     "config.json"
 ]
 
-# Dossier temporaire local pour stocker les fichiers téléchargés
+# Répertoire temporaire local
 LOCAL_MODEL_DIR = "./temp_model"
-
-# Créer dossier s'il n'existe pas
 os.makedirs(LOCAL_MODEL_DIR, exist_ok=True)
 
-# Fonction pour télécharger les blobs
+# --- Fonction pour télécharger les fichiers depuis Azure Blob Storage ---
 def download_model_from_azure():
     blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONNECTION_STRING)
     container_client = blob_service_client.get_container_client(CONTAINER_NAME)
-    
+
     for blob_name in BLOB_FILES:
         blob_client = container_client.get_blob_client(blob_name)
-        download_file_path = os.path.join(LOCAL_MODEL_DIR, blob_name)
-        
-        with open(download_file_path, "wb") as download_file:
-            download_stream = blob_client.download_blob()
-            download_file.write(download_stream.readall())
-    print("Modèle téléchargé depuis Azure Blob Storage.")
+        download_path = os.path.join(LOCAL_MODEL_DIR, blob_name)
 
-# Télécharger les fichiers au démarrage de l'API
+        with open(download_path, "wb") as f:
+            f.write(blob_client.download_blob().readall())
+
+    print("✅ Modèle téléchargé depuis Azure Blob Storage.")
+
+# Télécharger au démarrage
 download_model_from_azure()
 
-# Modèle personnalisé (comme dans ton code)
+# --- Modèle personnalisé ---
 class CustomClassificationHead(nn.Module):
     def __init__(self, hidden_size, dropout_rate=0.3, num_labels=2):
         super().__init__()
@@ -51,25 +51,25 @@ class CustomClassificationHead(nn.Module):
         return self.classifier(self.dropout(x))
 
 class CustomModernBERTModel(nn.Module):
-    def __init__(self, model_name, num_labels=2, dropout_rate=0.3):
+    def __init__(self, model_name_or_path, num_labels=2, dropout_rate=0.3):
         super().__init__()
-        self.backbone = AutoModel.from_pretrained(model_name)
+        self.backbone = AutoModel.from_pretrained(model_name_or_path)
         hidden_size = self.backbone.config.hidden_size
         self.classifier = CustomClassificationHead(hidden_size, dropout_rate, num_labels)
 
     def forward(self, input_ids=None, attention_mask=None):
         outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
-        pooled_output = outputs.last_hidden_state[:, 0]
-        logits = self.classifier(pooled_output)
-        return logits
+        cls_token = outputs.last_hidden_state[:, 0]
+        return self.classifier(cls_token)
 
-# Charger tokenizer et modèle depuis le dossier temporaire
+# --- Chargement du modèle et du tokenizer ---
 tokenizer = AutoTokenizer.from_pretrained(LOCAL_MODEL_DIR)
+
 model = CustomModernBERTModel(LOCAL_MODEL_DIR)
 model.load_state_dict(torch.load(os.path.join(LOCAL_MODEL_DIR, "pytorch_model.bin"), map_location="cpu"))
 model.eval()
 
-# FastAPI app
+# --- API FastAPI ---
 app = FastAPI()
 
 class InputText(BaseModel):
@@ -81,6 +81,6 @@ def predict_sentiment(input: InputText):
     with torch.no_grad():
         logits = model(**tokens)
         probs = torch.softmax(logits, dim=1)
-        pred = torch.argmax(probs, dim=1).item()
+        prediction = torch.argmax(probs, dim=1).item()
         confidence = torch.max(probs).item()
-    return {"prediction": pred, "confidence": round(confidence, 4)}
+    return {"prediction": prediction, "confidence": round(confidence, 4)}
