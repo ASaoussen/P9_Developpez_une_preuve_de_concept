@@ -1,60 +1,52 @@
 name: Build and deploy Python app to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: ModernBertTextSentimentClassification
-  PYTHON_VERSION: '3.12'
+  AZURE_WEBAPP_NAME: ModernBertTextSentimentClassification  # Azure Web App name
+  PYTHON_VERSION: '3.12'  # Python version
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          
+
       - name: Create and activate virtual environment
         run: |
           python -m venv myenv
           myenv\Scripts\activate
 
-      # ⚠️ Cette étape peut être supprimée si tu veux que ce soit Azure qui installe les dépendances automatiquement
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt  
 
-      - name: Create artifact
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: |
-            **/*.py
-            requirements.txt
-            .python_version
-            static/
-            templates/
-            app/
-            !**/__pycache__/
+            .
             !venv/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: Development
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -62,15 +54,14 @@ jobs:
           name: python-app
           path: .
 
-      - name: Azure Login
+      - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: "production"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
