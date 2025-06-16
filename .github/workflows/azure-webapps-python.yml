@@ -15,36 +15,34 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # ✅ utilise Linux ici pour être cohérent avec Azure
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: ''
+
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv myenv
+          myenv\Scripts\activate
 
       - name: Install dependencies
-        run: |
-          python -m venv antenv
-          source antenv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          # ✅ Assure-toi que gunicorn et uvicorn sont bien installés
-          pip install gunicorn uvicorn
+        run: pip install -r requirements.txt  
 
-      - name: Archive artifact for deployment
-        run: |
-          zip -r app.zip . -x "antenv/*"  # exclure le venv local du zip
-
-      - name: Upload artifact
+      - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: app.zip
-
+          path: |
+            .
+            !venv/
+         
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -55,9 +53,6 @@ jobs:
         with:
           name: python-app
           path: .
-
-      - name: Unzip artifact
-        run: unzip -o app.zip
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -70,4 +65,3 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: "production"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
