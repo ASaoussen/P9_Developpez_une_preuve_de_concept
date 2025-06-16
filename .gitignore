@@ -1,11 +1,28 @@
-myenv/ 
+# Environnement virtuel
+myenv/
+
+# Dossiers de modèles temporaires ou persistants
 temp_model/
-__pycache__/ 
-*.pyc 
-*.pyo 
-*.bak 
-*.swp 
-.ipynb_checkpoints/ 
-.vscode/ 
-*.png
 model/
+
+# Fichiers Python compilés
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Sauvegardes et fichiers temporaires
+*.bak
+*.swp
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+
+# Images
+*.png
+
+# Autres fichiers cachés ou inutiles
+.env
+.DS_Store

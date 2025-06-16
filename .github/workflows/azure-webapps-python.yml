@@ -24,20 +24,25 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
+      # ⚠️ Cette étape peut être supprimée si tu veux que ce soit Azure qui installe les dépendances automatiquement
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install uvicorn  # 🔁 sécurité supplémentaire au cas où
 
       - name: Create artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: |
-            .
-            !venv/
+            **/*.py
+            requirements.txt
+            .python_version
+            static/
+            templates/
+            app/
             !**/__pycache__/
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
@@ -63,3 +68,4 @@ jobs:
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
