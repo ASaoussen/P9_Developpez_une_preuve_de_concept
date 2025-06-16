@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+          
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv myenv
+          myenv\Scripts\activate
 
       # ⚠️ Cette étape peut être supprimée si tu veux que ce soit Azure qui installe les dépendances automatiquement
       - name: Install dependencies
