@@ -31,8 +31,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: List files before zipping (debug)
+      - name: List all files (recursive)
         run: ls -R
+
+      - name: Debug: check if startup.sh is here
+        run: find . -name "startup.sh"
+
+      - name: Debug: check file permissions
+        run: |
+          if [ -f ./startup.sh ]; then
+            ls -l ./startup.sh
+          else
+            echo "startup.sh not found in root directory"
+          fi
+
+      - name: Fix line endings (Windows to Unix)
+        run: |
+          sudo apt-get update && sudo apt-get install -y dos2unix
+          if [ -f ./startup.sh ]; then
+            dos2unix ./startup.sh
+          fi
+
+      - name: Make startup.sh executable
+        run: |
+          if [ -f ./startup.sh ]; then
+            chmod +x ./startup.sh
+          fi
 
       - name: Zip application
         run: |
