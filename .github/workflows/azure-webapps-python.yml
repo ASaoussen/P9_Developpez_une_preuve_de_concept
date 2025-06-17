@@ -59,7 +59,7 @@ jobs:
 
       - name: Zip application
         run: |
-          zip -r app.zip . -x "*.git*" "*__pycache__*" "*.venv/*" "venv/*" "myenv/*" ".github/*" "*.pytest_cache*" "*.mypy_cache*" ".vscode/*"
+          zip -r app.zip . -x '*.git*' '*__pycache__*' '*.venv/*' 'venv/*' 'myenv/*' '.github/*' '*.pytest_cache*' '*.mypy_cache*' '.vscode/*'
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
