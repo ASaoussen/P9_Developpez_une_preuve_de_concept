@@ -1,7 +1,7 @@
 name: Build and Deploy Python App to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: ModernBertTextSentimentClassification  # 🔁 à adapter si ton app a un autre nom
+  AZURE_WEBAPP_NAME: ModernBertTextSentimentClassification  # 🔁 adapte ce nom si besoin
   PYTHON_VERSION: '3.12'
 
 on:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
