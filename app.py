@@ -10,6 +10,9 @@ import os
 AZURE_CONNECTION_STRING = os.getenv("AZURE_CONNECTION_STRING")
 CONTAINER_NAME = os.getenv("CONTAINER_NAME")
 
+
+
+
 if AZURE_CONNECTION_STRING is None:
     raise RuntimeError(" Variable d'environnement AZURE_CONNECTION_STRING manquante.")
 
