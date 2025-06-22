@@ -25,16 +25,9 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: ''
-
-      - name: Create virtual environment
-        run: |
-          python -m venv myenv
-          source myenv/bin/activate  # ✅ Correct activation sous Linux
 
       - name: Install dependencies
         run: |
-          source myenv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
 
@@ -42,9 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            .
-            !myenv/
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
