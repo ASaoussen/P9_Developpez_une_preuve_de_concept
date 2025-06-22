@@ -1,8 +1,8 @@
 name: Build and Deploy Python App to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: bertsentimentsapp  # Azure Web App name
-  PYTHON_VERSION: '3.12'  # Python version
+  AZURE_WEBAPP_NAME: bertsentimentsapp
+  PYTHON_VERSION: '3.12'
 
 on:
   push:
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # ✅ Linux
 
     steps:
       - name: Checkout repository
@@ -27,13 +27,16 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: ''
 
-      - name: Create and activate virtual environment
+      - name: Create virtual environment
         run: |
           python -m venv myenv
-          myenv\Scripts\activate
+          source myenv/bin/activate  # ✅ Correct activation sous Linux
 
       - name: Install dependencies
-        run: pip install -r requirements.txt  
+        run: |
+          source myenv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
@@ -41,8 +44,8 @@ jobs:
           name: python-app
           path: |
             .
-            !venv/
-         
+            !myenv/
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
