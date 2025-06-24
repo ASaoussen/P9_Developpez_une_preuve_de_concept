@@ -31,6 +31,8 @@ requests==2.32.2
 # Serveur WSGI pour production
 # -----------------------------
 gunicorn==23.0.0
+# Serveur ASGI
+uvicorn==0.34.0
 
 # 🔧 Serveur alternatif utile pour Azure si gunicorn échoue
 waitress==2.1.2
