@@ -24,13 +24,16 @@ nltk==3.9.1
 # API avec Flask
 # -----------------------------
 flask==3.0.3
-flask-cors==4.0.1        # Pour activer le CORS si besoin
-requests==2.32.2         # Client HTTP (tests, appels API internes)
+flask-cors==4.0.1
+requests==2.32.2
 
 # -----------------------------
 # Serveur WSGI pour production
 # -----------------------------
 gunicorn==23.0.0
+
+# 🔧 Serveur alternatif utile pour Azure si gunicorn échoue
+waitress==2.1.2
 
 # -----------------------------
 # Azure SDK
