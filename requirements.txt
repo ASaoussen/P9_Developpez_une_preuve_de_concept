@@ -1,8 +1,8 @@
 # -----------------------------
 # Deep Learning & Transformers
 # -----------------------------
-torch==2.2.2
-transformers==4.40.1
+torch==2.7.1
+transformers==4.50.0
 
 # -----------------------------
 # Traitement de données & Évaluation
