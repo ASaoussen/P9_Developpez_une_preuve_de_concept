@@ -1,20 +1,16 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import torch
+from flask import Flask, request, jsonify
 from transformers import AutoTokenizer, AutoModel, AutoConfig
-import torch.nn as nn
 from azure.storage.blob import BlobServiceClient
+import torch
+import torch.nn as nn
 import os
 
 # --- Configuration Azure depuis variable d’environnement ---
 AZURE_CONNECTION_STRING = os.getenv("AZURE_CONNECTION_STRING")
 CONTAINER_NAME = os.getenv("CONTAINER_NAME")
 
-
-
-
 if AZURE_CONNECTION_STRING is None:
-    raise RuntimeError(" Variable d'environnement AZURE_CONNECTION_STRING manquante.")
+    raise RuntimeError("Variable d'environnement AZURE_CONNECTION_STRING manquante.")
 
 # --- Fichiers requis à télécharger ---
 BLOB_FILES = [
@@ -45,6 +41,7 @@ def download_model_from_azure():
         print(f" Erreur Azure : {e}")
         raise RuntimeError("Échec du téléchargement depuis Azure.")
 
+# --- Validation des fichiers téléchargés ---
 def validate_model_files():
     missing = [f for f in BLOB_FILES if not os.path.exists(os.path.join(LOCAL_MODEL_DIR, f))]
     if missing:
@@ -72,7 +69,7 @@ class CustomModernBERTModel(nn.Module):
         cls_token = outputs.last_hidden_state[:, 0]
         return self.classifier(cls_token)
 
-# --- Initialisation au démarrage ---
+# --- Initialisation du modèle ---
 download_model_from_azure()
 validate_model_files()
 
@@ -85,38 +82,34 @@ model_path = os.path.join(LOCAL_MODEL_DIR, "pytorch_model.bin")
 model.load_state_dict(torch.load(model_path, map_location="cpu"))
 model.eval()
 
-print("🚀 Modèle chargé et prêt.")
+print(" Modèle chargé et prêt.")
 
-# --- API FastAPI ---
-app = FastAPI(
-    title="API Sentiment - ModernBERT",
-    description="Prédiction du sentiment",
-    version="1.0"
-)
-
-class InputText(BaseModel):
-    text: str
+# --- Initialisation Flask ---
+app = Flask(__name__)
 
 label_map = {
     0: "Négatif",
     1: "Positif"
 }
 
-@app.get("/")
+# --- Routes ---
+@app.route("/", methods=["GET"])
 def home():
-    return {"message": "Bienvenue sur l'API de classification de sentiment."}
+    return jsonify({"message": "Bienvenue sur l'API de classification de sentiment."})
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"})
 
-@app.post("/predict")
-def predict_sentiment(input: InputText):
-    if not input.text.strip():
-        raise HTTPException(status_code=400, detail="Le texte ne peut pas être vide.")
+@app.route("/predict", methods=["POST"])
+def predict():
+    data = request.get_json()
+    if not data or "text" not in data or not data["text"].strip():
+        return jsonify({"error": "Le texte ne peut pas être vide."}), 400
 
+    text = data["text"]
     tokens = tokenizer(
-        input.text,
+        text,
         return_tensors="pt",
         truncation=True,
         padding="max_length",
@@ -129,8 +122,12 @@ def predict_sentiment(input: InputText):
         prediction = torch.argmax(probs, dim=1).item()
         confidence = torch.max(probs).item()
 
-    return {
+    return jsonify({
         "prediction": prediction,
         "label": label_map.get(prediction, "Inconnu"),
         "confidence": round(confidence, 4)
-    }
+    })
+
+# --- Lancement local ---
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)

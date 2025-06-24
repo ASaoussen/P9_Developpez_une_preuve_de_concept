@@ -1,7 +1,7 @@
-name: Build and Deploy Python App to Azure Web App
+name: Build and Deploy Flask App to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: bertsentimentsapp
+  AZURE_WEBAPP_NAME: bertsentimentsapp      # 🔁 Nom de ton app Azure
   PYTHON_VERSION: '3.12'
 
 on:
@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # ✅ Linux
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -28,13 +28,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
-          name: python-app
+          name: flask-app
           path: .
 
   deploy:
@@ -45,7 +45,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: python-app
+          name: flask-app
           path: .
 
       - name: Login to Azure

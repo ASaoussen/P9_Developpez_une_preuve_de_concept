@@ -1,33 +1,48 @@
+# -----------------------------
 # Deep Learning & Transformers
+# -----------------------------
 torch==2.2.2
 transformers==4.40.1
 
-# Traitement de données & Evaluation
-numpy==1.26.4
-pandas==2.2.3
+# -----------------------------
+# Traitement de données & Évaluation
+# -----------------------------
 datasets==2.19.1
 evaluate==0.4.2
-matplotlib==3.8.4
-scikit-learn==1.6.1
 joblib==1.4.2
+matplotlib==3.8.4
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.6.1
 
+# -----------------------------
 # NLP
+# -----------------------------
 nltk==3.9.1
 
-# API
-fastapi==0.115.6
-pydantic==2.10.5
-httpx==0.28.1  # Client HTTP (utile pour les tests aussi)
+# -----------------------------
+# API avec Flask
+# -----------------------------
+flask==3.0.3
+flask-cors==4.0.1        # Pour activer le CORS si besoin
+requests==2.32.2         # Client HTTP (tests, appels API internes)
 
-# Serveur ASGI
-uvicorn==0.34.0
+# -----------------------------
+# Serveur WSGI pour production
+# -----------------------------
 gunicorn==23.0.0
 
-# Azure
+# -----------------------------
+# Azure SDK
+# -----------------------------
 azure-storage-blob==12.19.1
 
-# Tests
+# -----------------------------
+# Tests & développement
+# -----------------------------
 pytest==8.3.4
 
+# -----------------------------
 # Autres dépendances
+# -----------------------------
 zipp==3.21.0
